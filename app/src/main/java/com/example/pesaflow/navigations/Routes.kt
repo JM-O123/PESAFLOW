@@ -1,0 +1,11 @@
+package com.example.pesaflow.navigations
+
+const val ROUTE_SPLASH = "splash"
+const val ROUTE_REGISTER = "register"
+const val ROUTE_LOGIN = "login"
+const val ROUTE_HOME = "home"
+const val ROUTE_ADD_TRANSACTION = "add_transaction"
+const val ROUTE_VIEW_TRANSACTIONS = "view_transactions"
+const val ROUTE_UPDATE_TRANSACTION = "update_transaction"
+
+

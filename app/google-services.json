@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "684868726279",
+    "project_id": "pesaflow-d4d72",
+    "storage_bucket": "pesaflow-d4d72.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:684868726279:android:69d6583e22acaa149284a2",
+        "android_client_info": {
+          "package_name": "com.example.pesaflow"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAZlfaCHkmqkj6CPh1ga9cYTATh5XFnxZA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
