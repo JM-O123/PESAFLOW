@@ -127,49 +127,5 @@ class AuthViewModel : ViewModel() {
         val ref = FirebaseDatabase.getInstance().getReference("Users/$userId")
         val snapshot = ref.get().await()
         return snapshot.getValue(UserModel::class.java)
-    }
-
-    fun saveTransaction(
-        title: String,
-        amount: Double,
-        category: String,
-        description: String,
-        transactionType: String,
-        navController: NavController,
-        context: Context
-    ) {
-        val userId = mAuth.currentUser?.uid ?: run {
-            showToast(context, "Not logged in")
-            return
-        }
-
-        if (title.isBlank() || category.isBlank() || description.isBlank()) {
-            showToast(context, "Please fill all transaction fields")
-            return
-        }
-
-        val transactionId = FirebaseDatabase.getInstance().reference.push().key ?: return
-        val date = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
-
-        val transaction = TransactionModel(
-            transactionId = transactionId,
-            title = title,
-            amount = amount,
-            category = category,
-            description = description,
-            transactionType = transactionType,
-            userId = userId,
-            date = date
-        )
-
-        val ref = FirebaseDatabase.getInstance().getReference("transactions/$userId/$transactionId")
-        ref.setValue(transaction).addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                showToast(context, "Transaction saved")
-                navController.navigate(ROUTE_HOME)
-            } else {
-                _errorMessage.value = task.exception?.message
-                showToast(context, "Failed to save transaction")
-            }
-        }
     }}
+

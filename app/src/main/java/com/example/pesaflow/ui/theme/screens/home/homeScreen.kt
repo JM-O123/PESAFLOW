@@ -51,6 +51,11 @@ import androidx.navigation.compose.rememberNavController
 import com.example.pesaflow.data.AuthViewModel
 import com.example.pesaflow.navigations.ROUTE_ADD_TRANSACTION
 
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import com.example.pesaflow.R // Make sure your R import points to your package
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(navController: NavController) {
@@ -112,24 +117,18 @@ fun DashboardScreen(navController: NavController) {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // Background gradient
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(Color(0xFF1E1E1E), Color(0xFF3A3A3A)),
-                            startY = 0f,
-                            endY = Float.POSITIVE_INFINITY
-                        )
-                    )
+            // 🎨 Custom background image
+            Image(
+                painter = painterResource(id = R.drawable.financial),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
             )
 
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // TopAppBar with icons aligned
                 TopAppBar(
                     title = { Text(text = "PesaFlow", style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)) },
                     navigationIcon = {
@@ -153,22 +152,21 @@ fun DashboardScreen(navController: NavController) {
                     )
                 )
 
-                Spacer(modifier = Modifier.height(20.dp)) // Adds some space before the cards
+                Spacer(modifier = Modifier.height(20.dp))
 
-                // Cards in a grid format with padding between them
                 LazyColumn(
                     modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)
                 ) {
                     item {
-                        // Add Transaction Card
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            // ✅ Only one card remains: Add Transaction
                             Card(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clickable { navController.navigate(ROUTE_ADD_TRANSACTION) },
                                 shape = RoundedCornerShape(15.dp),
                                 elevation = CardDefaults.cardElevation(12.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFF43A047)) // Green card
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFF43A047)) // Green
                             ) {
                                 Box(
                                     modifier = Modifier
@@ -183,44 +181,19 @@ fun DashboardScreen(navController: NavController) {
                                     )
                                 }
                             }
-
-                            // Budgets Card
-                            Card(
-                                modifier = Modifier
-                                    .weight(1f),
-                                shape = RoundedCornerShape(15.dp),
-                                elevation = CardDefaults.cardElevation(12.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E88E5)) // Blue card
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .height(120.dp)
-                                        .padding(25.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "Budgets",
-                                        color = Color.White,
-                                        style = MaterialTheme.typography.headlineSmall
-                                    )
-                                }
-                            }
                         }
-                    }
 
-                    item {
-                        Spacer(modifier = Modifier.height(16.dp)) // Adds space between rows
-                    }
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                    item {
-                        // Income Card
+                        // New card for View Transactions
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                             Card(
                                 modifier = Modifier
-                                    .weight(1f),
+                                    .weight(1f)
+                                    .clickable { navController.navigate("ViewTransactionPage") },
                                 shape = RoundedCornerShape(15.dp),
                                 elevation = CardDefaults.cardElevation(12.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFF00ACC1)) // Cyan card
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFF1976D2)) // Blue
                             ) {
                                 Box(
                                     modifier = Modifier
@@ -229,59 +202,7 @@ fun DashboardScreen(navController: NavController) {
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = "Income",
-                                        color = Color.White,
-                                        style = MaterialTheme.typography.headlineSmall
-                                    )
-                                }
-                            }
-
-                            // Expenses Card
-                            Card(
-                                modifier = Modifier
-                                    .weight(1f),
-                                shape = RoundedCornerShape(15.dp),
-                                elevation = CardDefaults.cardElevation(12.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFFE53935)) // Red card
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .height(120.dp)
-                                        .padding(25.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "Expenses",
-                                        color = Color.White,
-                                        style = MaterialTheme.typography.headlineSmall
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    item {
-                        Spacer(modifier = Modifier.height(16.dp)) // Adds space between rows
-                    }
-
-                    item {
-                        // Reports Card
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                            Card(
-                                modifier = Modifier
-                                    .weight(1f),
-                                shape = RoundedCornerShape(15.dp),
-                                elevation = CardDefaults.cardElevation(12.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFF66BB6A)) // Green card
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .height(120.dp)
-                                        .padding(25.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "Reports",
+                                        text = "View Transactions",
                                         color = Color.White,
                                         style = MaterialTheme.typography.headlineSmall
                                     )
@@ -292,10 +213,9 @@ fun DashboardScreen(navController: NavController) {
                 }
             }
         }
-    }
-}
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun DashboardScreenPreview() {
     com.example.pesaflow.ui.theme.screens.home.DashboardScreen(rememberNavController())
-}
+}}}

@@ -1,17 +1,19 @@
 package com.example.pesaflow.models
 
 data class TransactionModel(
-    var amount: String = 0.0,  // Amount of the transaction (numeric, for calculations)
-    var description: String = "",  // Description or notes about the transaction
-    var transactionType: String = "",  // Type: "income" or "expense"
-    var transactionId: String = "",  // Unique identifier
-    val title: String = "",
-    val date: String = "",
-    val category: String = "",
-    val userId: String = ""
+    var transactionId: String = "",       // Unique ID
+    var userId: String = "",              // Owner's UID
+    var title: String = "",               // Short title of transaction
+    var description: String = "",         // Additional details
+    var category: String = "",            // e.g., Food, Bills, Salary
+    var transactionType: String = "",     // "income" or "expense"
+    var amount: Int = 0,             // Double for currency precision
+    var date: String = "",                // Display date (e.g., "2025-05-08")
+    var createdAt: Long = 0L              // Timestamp for sorting (Epoch millis)
 )
 
-data class UserModel(
+
+data class User(
     var userId: String = "",
     var userName: String = "",
     var email: String = "",

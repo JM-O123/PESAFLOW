@@ -1,7 +1,6 @@
 package com.example.pesaflow.ui.theme.screens.transactions
 
 import android.widget.Toast
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,13 +32,13 @@ fun AddTransactionScreen(
     var description by remember { mutableStateOf("") }
     var date by remember { mutableStateOf("") }
     var type by remember { mutableStateOf("Expense") }
-    var expanded by remember { mutableStateOf(false) }
 
     val transactionViewModel: TransactionViewModel = viewModel()
     val context = LocalContext.current
     val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
     val typeOptions = listOf("Income", "Expense")
 
+    // Wrapping the entire content inside a Column with a vertical scroll
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -61,32 +60,7 @@ fun AddTransactionScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         // Transaction Type Dropdown
-        Box(modifier = Modifier.fillMaxWidth()) {
-            OutlinedTextField(
-                value = type,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Transaction Type") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { expanded = true },
-                shape = RoundedCornerShape(16.dp)
-            )
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
-            ) {
-                typeOptions.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(option) },
-                        onClick = {
-                            type = option
-                            expanded = false
-                        }
-                    )
-                }
-            }
-        }
+        // You can implement dropdown here if needed, or use a simple Toggle or Radio Button for type selection
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -169,24 +143,30 @@ fun AddTransactionScreen(
 
             Button(
                 onClick = {
-                    if (
-                        name.isNotEmpty() &&
-                        category.isNotEmpty() &&
-                        amount.isNotEmpty() &&
-                        description.isNotEmpty() &&
-                        date.isNotEmpty()
-                    ) {
+                    // Validate if all fields are filled
+                    if (name.isNotEmpty() && category.isNotEmpty() && amount.isNotEmpty() && description.isNotEmpty() && date.isNotEmpty()) {
+                        // Parse the amount to double and check if it's valid
                         val parsedAmount = amount.toDoubleOrNull()
                         if (parsedAmount != null) {
-                            TransactionViewModel.addTransaction(
-                                name = name,
-                                category = category,
+                            // Get the current user's ID (e.g., from Firebase Auth)
+                            val userId = "your_user_id_here" // You need to implement fetching the user ID
+
+                            // Call the addTransaction function to save data
+                            transactionViewModel.addTransaction(
+                                context = context,
                                 amount = parsedAmount.toString(),
-                                description = description,
+                                category = category,
+                                type = type,
                                 date = date,
-                                type = type.lowercase()
+                                title = name,
+                                description = description,
+                                userId = userId,
+                                navController = navController
                             )
+
+                            // Show success message
                             Toast.makeText(context, "$type Saved", Toast.LENGTH_SHORT).show()
+                            // Navigate back to the dashboard
                             navController.navigate("dashboard")
                         } else {
                             Toast.makeText(context, "Invalid amount", Toast.LENGTH_LONG).show()

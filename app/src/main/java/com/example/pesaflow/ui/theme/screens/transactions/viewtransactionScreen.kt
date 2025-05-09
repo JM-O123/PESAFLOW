@@ -3,8 +3,12 @@ package com.example.pesaflow.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,7 +28,7 @@ fun ViewTransactionsScreen(navController: NavHostController) {
     val emptyTransaction = remember {
         mutableStateOf(
             TransactionModel(
-                amount = 0.0.toString(),
+                amount = 0.toInt(),
                 description = "",
                 transactionType = "",
                 transactionId = "",
@@ -40,6 +44,14 @@ fun ViewTransactionsScreen(navController: NavHostController) {
 
     // Load transactions once when Composable is shown
     LaunchedEffect(Unit) {
+        transactionViewModel.viewTransactions(emptyTransaction, transactionList, context)
+    }
+
+    // Function to delete a transaction
+    val deleteTransaction = { transactionId: String ->
+        transactionViewModel.deleteTransaction(context, transactionId, navController)
+        // After deletion, we refresh the list by re-fetching transactions
+        transactionList.clear()
         transactionViewModel.viewTransactions(emptyTransaction, transactionList, context)
     }
 
@@ -62,14 +74,21 @@ fun ViewTransactionsScreen(navController: NavHostController) {
             modifier = Modifier.fillMaxSize()
         ) {
             items(transactionList) { txn ->
-                TransactionItem(transaction = txn)
+                // Pass the deleteTransaction logic to each item
+                TransactionItem(
+                    transaction = txn,
+                    onDeleteClick = deleteTransaction
+                )
             }
         }
     }
 }
 
 @Composable
-fun TransactionItem(transaction: TransactionModel) {
+fun TransactionItem(
+    transaction: TransactionModel,
+    onDeleteClick: (String) -> SnapshotStateList<TransactionModel> // This function will be triggered on delete
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -81,5 +100,13 @@ fun TransactionItem(transaction: TransactionModel) {
         Text(text = "Type: ${transaction.transactionType}")
         Text(text = "Date: ${transaction.date}")
         Spacer(modifier = Modifier.height(8.dp))
+
+        // Add Delete Button
+        Button(
+            onClick = { onDeleteClick(transaction.transactionId) },
+            colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.error)
+        ) {
+            Text(text = "Delete", color = Color.White)
+        }
     }
 }
