@@ -11,7 +11,7 @@ import com.example.pesaflow.ui.theme.screens.home.DashboardScreen
 import com.example.pesaflow.ui.theme.screens.loginScreen.LoginScreen
 import com.example.pesaflow.ui.theme.screens.registerscreen.RegisterScreen
 import com.example.pesaflow.ui.theme.screens.transactions.AddTransactionScreen
-import com.example.pesaflow.screens.ViewTransactionsScreen
+import com.example.pesaflow.ui.theme.screens.transactions.ViewTransactionsScreen
 
 
 @Composable

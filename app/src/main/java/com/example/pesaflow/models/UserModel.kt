@@ -7,5 +7,6 @@ data class UserModel(
     var password: String = "",     // User's password (should be hashed/stored securely)
     var balance: Double = 0.0,     // User's current balance (total income - total expenses)
     var transactions: List<String> = listOf(),  // List of transaction IDs for the user
-    val firstname: String
+    val firstname: String,
+    val lastname: String
 )

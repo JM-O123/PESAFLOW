@@ -1,185 +1,278 @@
 package com.example.pesaflow.ui.theme.screens.transactions
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.pesaflow.data.TransactionViewModel
+import com.google.firebase.auth.FirebaseAuth
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTransactionScreen(
     navController: NavController
 ) {
-    var name by remember { mutableStateOf("") }
+    var title by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var date by remember { mutableStateOf("") }
-    var type by remember { mutableStateOf("Expense") }
+    var transactionType by remember { mutableStateOf("") }
+    var isSaving by remember { mutableStateOf(false) }
 
     val transactionViewModel: TransactionViewModel = viewModel()
     val context = LocalContext.current
     val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-    val typeOptions = listOf("Income", "Expense")
+    val transactionTypes = listOf("Income", "Expense")
 
-    // Wrapping the entire content inside a Column with a vertical scroll
-    Column(
+    // Gradient Background
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(20.dp)
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFF006400), // Kenyan green
+                        Color(0xFF43A047), // Light green
+                        Color(0xFFB22222)  // Kenyan red
+                    )
+                )
+            )
     ) {
-        Text(
-            text = "ADD TRANSACTION",
-            fontWeight = FontWeight.Bold,
-            fontSize = 24.sp,
-            color = MaterialTheme.colorScheme.primary,
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            textAlign = TextAlign.Center
-        )
+                .fillMaxSize()
+                .padding(20.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Title
+            Text(
+                text = "ADD TRANSACTION",
+                fontWeight = FontWeight.Bold,
+                fontSize = 26.sp,
+                color = Color.White,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                textAlign = TextAlign.Center
+            )
 
-        Spacer(modifier = Modifier.height(16.dp))
+            // Transaction Type Selector
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "Transaction Type",
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
 
-        // Transaction Type Dropdown
-        // You can implement dropdown here if needed, or use a simple Toggle or Radio Button for type selection
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
-            label = { Text("Title") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            singleLine = true
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        OutlinedTextField(
-            value = category,
-            onValueChange = { category = it },
-            label = { Text("Category") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            singleLine = true
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        OutlinedTextField(
-            value = amount,
-            onValueChange = { amount = it },
-            label = { Text("Amount") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            singleLine = true
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        OutlinedTextField(
-            value = description,
-            onValueChange = { description = it },
-            label = { Text("Description") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(100.dp),
-            shape = RoundedCornerShape(16.dp)
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        OutlinedTextField(
-            value = date,
-            onValueChange = { date = it },
-            label = { Text("Date") },
-            placeholder = { Text("yyyy-MM-dd") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            trailingIcon = {
-                IconButton(onClick = {
-                    date = currentDate
-                }) {
-                    Icon(Icons.Default.DateRange, contentDescription = "Set current date")
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        transactionTypes.forEach { type ->
+                            FilterChip(
+                                selected = transactionType == type,
+                                onClick = { transactionType = type },
+                                label = { Text(type) },
+                                modifier = Modifier.weight(1f),
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                    selectedLabelColor = Color.White
+                                )
+                            )
+                        }
+                    }
                 }
             }
-        )
 
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Button(
-                onClick = { navController.navigate("dashboard") },
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text("DASHBOARD")
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Button(
-                onClick = {
-                    // Validate if all fields are filled
-                    if (name.isNotEmpty() && category.isNotEmpty() && amount.isNotEmpty() && description.isNotEmpty() && date.isNotEmpty()) {
-                        // Parse the amount to double and check if it's valid
-                        val parsedAmount = amount.toDoubleOrNull()
-                        if (parsedAmount != null) {
-                            // Get the current user's ID (e.g., from Firebase Auth)
-                            val userId = "your_user_id_here" // You need to implement fetching the user ID
-
-                            // Call the addTransaction function to save data
-                            transactionViewModel.addTransaction(
-                                context = context,
-                                amount = parsedAmount.toString(),
-                                category = category,
-                                type = type,
-                                date = date,
-                                title = name,
-                                description = description,
-                                userId = userId,
-                                navController = navController
-                            )
-
-                            // Show success message
-                            Toast.makeText(context, "$type Saved", Toast.LENGTH_SHORT).show()
-                            // Navigate back to the dashboard
-                            navController.navigate("dashboard")
-                        } else {
-                            Toast.makeText(context, "Invalid amount", Toast.LENGTH_LONG).show()
-                        }
-                    } else {
-                        Toast.makeText(context, "Please fill in all fields", Toast.LENGTH_LONG).show()
-                    }
+            // Input Fields
+            CustomInputField(
+                value = title,
+                onValueChange = { title = it },
+                label = "Title"
+            )
+            CustomInputField(
+                value = category,
+                onValueChange = { category = it },
+                label = "Category"
+            )
+            CustomInputField(
+                value = amount,
+                onValueChange = {
+                    if (it.all { char -> char.isDigit() || char == '.' }) amount = it
                 },
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp)
+                label = "Amount (e.g., 123.45)"
+            )
+            CustomInputField(
+                value = description,
+                onValueChange = { description = it },
+                label = "Description",
+                height = 120.dp
+            )
+            CustomInputField(
+                value = date.ifEmpty { currentDate },
+                onValueChange = { date = it },
+                label = "Date"
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text("SAVE")
+                OutlinedButton(
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("CANCEL")
+                }
+
+                Button(
+                    onClick = {
+                        if (title.isNotEmpty() && category.isNotEmpty() && amount.isNotEmpty() &&
+                            date.isNotEmpty() && transactionType.isNotEmpty()
+                        ) {
+                            try {
+                                isSaving = true
+                                val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+
+                                if (userId.isEmpty()) {
+                                    Toast.makeText(context, "User authentication error", Toast.LENGTH_SHORT).show()
+                                    isSaving = false
+                                    return@Button
+                                }
+
+                                transactionViewModel.addTransaction(
+                                    context = context,
+                                    amount = amount,
+                                    category = category,
+                                    type = transactionType,
+                                    date = date.ifEmpty { currentDate },
+                                    title = title,
+                                    description = description,
+                                    navController = navController,
+                                    userIdParam = userId
+                                )
+                                isSaving = false
+                            } catch (e: Exception) {
+                                isSaving = false
+                                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                            }
+                        } else {
+                            Toast.makeText(context, "Please fill in all required fields", Toast.LENGTH_LONG).show()
+                        }
+                    },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    enabled = !isSaving
+                ) {
+                    if (isSaving) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("SAVE")
+                    }
+                }
             }
+        }
+    }
+}
+
+@Composable
+fun CustomInputField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    height: Dp = 56.dp
+) {
+    Column {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(height)
+                .padding(vertical = 8.dp)
+                .background(Color.White.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
+                .clickable { /* Focus handling here if needed */ }
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            if (value.isEmpty()) {
+                Text(
+                    text = label,
+                    color = Color.White.copy(alpha = 0.5f),
+                    fontSize = 16.sp
+                )
+            }
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                textStyle = TextStyle(
+                    color = Color.White,
+                    fontSize = 16.sp
+                ),
+                singleLine = true,
+                modifier = Modifier.fillMaxSize()
+            )
         }
     }
 }

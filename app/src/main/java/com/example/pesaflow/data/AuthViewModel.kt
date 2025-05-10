@@ -1,10 +1,10 @@
 package com.example.pesaflow.data
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
-import com.example.pesaflow.models.TransactionModel
 import com.example.pesaflow.models.UserModel
 import com.example.pesaflow.navigations.ROUTE_HOME
 import com.google.firebase.auth.FirebaseAuth
@@ -12,9 +12,6 @@ import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.tasks.await
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class AuthViewModel : ViewModel() {
 
@@ -37,30 +34,31 @@ class AuthViewModel : ViewModel() {
         navController: NavController,
         context: Context
     ) {
-        // Check if fields are not empty
         if (firstname.isBlank() || lastname.isBlank() || email.isBlank() || password.isBlank()) {
             showToast(context, "Please fill all the fields")
             return
         }
 
         _isLoading.value = true
+        _errorMessage.value = null
 
-        // Create user with email and password
         mAuth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 _isLoading.value = false
                 if (task.isSuccessful) {
-                    // After user creation, save user data to the database
+                    Log.d("AuthViewModel", "User created successfully: ${mAuth.currentUser?.uid}")
                     val userId = mAuth.currentUser?.uid.orEmpty()
                     val userData = UserModel(
                         userId = userId,
                         email = email,
-                        firstname = firstname
+                        firstname = firstname,
+                        lastname = lastname
                     )
                     saveUserToDatabase(userId, userData, navController, context)
                 } else {
                     _errorMessage.value = task.exception?.message
-                    showToast(context, "Registration Failed")
+                    Log.e("AuthViewModel", "Authentication failed", task.exception)
+                    showToast(context, _errorMessage.value ?: "Registration Failed")
                 }
             }
     }
@@ -74,12 +72,15 @@ class AuthViewModel : ViewModel() {
         val ref = FirebaseDatabase.getInstance().getReference("Users/$userId")
         ref.setValue(userData).addOnCompleteListener { task ->
             if (task.isSuccessful) {
+                Log.d("AuthViewModel", "User data saved to database")
                 showToast(context, "User Successfully Registered")
-                // Navigate to home after successful registration
-                navController.navigate(ROUTE_HOME)
+                navController.navigate(ROUTE_HOME) {
+                    popUpTo("register") { inclusive = true }
+                }
             } else {
                 _errorMessage.value = task.exception?.message
-                showToast(context, "Database Error")
+                Log.e("AuthViewModel", "Database save failed", task.exception)
+                showToast(context, "Database Error: ${_errorMessage.value}")
             }
         }
     }
@@ -90,34 +91,37 @@ class AuthViewModel : ViewModel() {
         navController: NavController,
         context: Context
     ) {
-        // Ensure email and password are provided
         if (email.isBlank() || password.isBlank()) {
             showToast(context, "Email and password required")
             return
         }
 
         _isLoading.value = true
+        _errorMessage.value = null
 
-        // Sign in the user with email and password
         mAuth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 _isLoading.value = false
                 if (task.isSuccessful) {
-                    // On successful login, navigate to home
+                    Log.d("AuthViewModel", "User logged in successfully: ${mAuth.currentUser?.uid}")
                     showToast(context, "User Successfully Logged In")
-                    navController.navigate(ROUTE_HOME)
+                    navController.navigate(ROUTE_HOME) {
+                        popUpTo("login") { inclusive = true }
+                    }
                 } else {
                     _errorMessage.value = task.exception?.message
-                    showToast(context, "Login Failed")
+                    Log.e("AuthViewModel", "Login failed", task.exception)
+                    showToast(context, "Login Failed: ${_errorMessage.value}")
                 }
             }
     }
 
     fun logout(navController: NavController, context: Context) {
-        // Sign out and show toast
         mAuth.signOut()
         showToast(context, "Successfully logged out")
-        // Optionally, navigate to login screen if needed
+        navController.navigate("login") {
+            popUpTo(0) // Clear the navigation stack
+        }
     }
 
     fun loggedin(): Boolean = mAuth.currentUser != null
@@ -125,7 +129,12 @@ class AuthViewModel : ViewModel() {
     suspend fun getCurrentUser(): UserModel? {
         val userId = mAuth.currentUser?.uid ?: return null
         val ref = FirebaseDatabase.getInstance().getReference("Users/$userId")
-        val snapshot = ref.get().await()
-        return snapshot.getValue(UserModel::class.java)
-    }}
-
+        return try {
+            val snapshot = ref.get().await()
+            snapshot.getValue(UserModel::class.java)
+        } catch (e: Exception) {
+            Log.e("AuthViewModel", "Error fetching user data", e)
+            null
+        }
+    }
+}

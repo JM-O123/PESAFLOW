@@ -14,15 +14,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.Black
-import androidx.compose.ui.graphics.Color.Companion.Green
-import androidx.compose.ui.graphics.Color.Companion.Red
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -40,8 +36,9 @@ fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel = 
     var lastname by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
 
+    val isLoading by authViewModel.isLoading.collectAsState()
+    val errorMessage by authViewModel.errorMessage.collectAsState()
     val context = LocalContext.current
 
     Box(
@@ -49,57 +46,66 @@ fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel = 
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    colors = listOf(Black.copy(alpha = 0.8f), Red.copy(alpha = 0.6f), Green.copy(alpha = 0.4f)),
-                    startY = 0f,
-                    endY = Float.POSITIVE_INFINITY
+                    colors = listOf(
+                        Color.Black.copy(alpha = 0.8f),
+                        Color(0xFFB22222).copy(alpha = 0.6f), // Kenyan red
+                        Color(0xFF006400).copy(alpha = 0.4f)  // Kenyan green
+                    )
                 )
             )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight()
-                .padding(20.dp),
-            verticalArrangement = Arrangement.Top,
+                .align(Alignment.Center)
+                .padding(horizontal = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Spacer(modifier = Modifier.height(50.dp))
+            // Title
             Text(
-                text = "Sign Up",
+                text = "Create Account",
                 color = Color.White,
-                fontSize = 32.sp,
+                fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 8.dp)
+                textAlign = TextAlign.Center
             )
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Sign up into your account",
+                text = "Join PesaFlow and manage your finances with ease!",
                 color = Color.White.copy(alpha = 0.8f),
                 fontSize = 16.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 20.dp)
+                textAlign = TextAlign.Center
             )
+            Spacer(modifier = Modifier.height(20.dp))
 
+            // First Name Input
             OutlinedTextField(
                 value = firstname,
                 onValueChange = { firstname = it },
-                label = { Text("Enter your First Name") },
+                label = { Text("First Name") },
                 placeholder = { Text("Enter your first name") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 8.dp),
-                leadingIcon = { Icon(Icons.Default.Person, contentDescription = "First Name") }
+                leadingIcon = { Icon(Icons.Default.Person, contentDescription = "First Name Icon") },
+                shape = RoundedCornerShape(50)
             )
+
+            // Last Name Input
             OutlinedTextField(
                 value = lastname,
                 onValueChange = { lastname = it },
-                label = { Text("Enter your Last Name") },
+                label = { Text("Last Name") },
                 placeholder = { Text("Enter your last name") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 8.dp),
-                leadingIcon = { Icon(Icons.Default.Person, contentDescription = "Last Name") }
+                leadingIcon = { Icon(Icons.Default.Person, contentDescription = "Last Name Icon") },
+                shape = RoundedCornerShape(50)
             )
+
+            // Email Input
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -108,45 +114,80 @@ fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel = 
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 8.dp),
-                leadingIcon = { Icon(Icons.Default.Email, contentDescription = "Email Icon") }
+                leadingIcon = { Icon(Icons.Default.Email, contentDescription = "Email Icon") },
+                shape = RoundedCornerShape(50)
             )
+
+            // Password Input
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("Password") },
                 placeholder = { Text("Enter your password") },
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                visualTransformation = PasswordVisualTransformation(), // Always masked
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 8.dp),
-                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Password Icon") }
+                    .padding(bottom = 16.dp),
+                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Password Icon") },
+                shape = RoundedCornerShape(50)
             )
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Sign Up Button
             Button(
                 onClick = {
-                    authViewModel.signup(firstname, lastname, email, password, navController, context)
+                    authViewModel.signup(
+                        firstname = firstname,
+                        lastname = lastname,
+                        email = email,
+                        password = password,
+                        navController = navController,
+                        context = context
+                    )
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)
-                    .padding(bottom = 16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0A74DA)),
-                shape = RoundedCornerShape(50)
+                    .padding(vertical = 8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF006400)), // Kenyan green
+                shape = RoundedCornerShape(50),
+                enabled = !isLoading // Disable button while loading
             ) {
-                Text("Sign Up", fontSize = 18.sp, color = Color.White)
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text("Sign Up", fontSize = 18.sp, color = Color.White)
+                }
             }
 
+            // Display error message if it exists
+            errorMessage?.let {
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+
+            // Sign In Link
             Text(
                 text = buildAnnotatedString {
                     append("Already have an account? ")
-                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color(0xFF0A74DA))) {
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color(0xFFB22222))) { // Kenyan red
                         append("Sign in")
                     }
                 },
                 modifier = Modifier
                     .clickable { navController.navigate(ROUTE_LOGIN) }
-                    .padding(top = 8.dp),
-                color = Color.White
+                    .padding(top = 16.dp),
+                color = Color.White,
+                fontSize = 14.sp
             )
         }
     }
@@ -155,5 +196,5 @@ fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel = 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun RegisterScreenPreview() {
-    RegisterScreen(rememberNavController())
+    RegisterScreen(navController = rememberNavController())
 }
