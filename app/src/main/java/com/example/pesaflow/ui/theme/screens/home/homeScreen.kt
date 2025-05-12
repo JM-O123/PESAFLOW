@@ -1,5 +1,7 @@
 package com.example.pesaflow.ui.theme.screens.home
 
+import ROUTE_ADD_TRANSACTION
+import ROUTE_VIEW_TRANSACTIONS
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -33,8 +35,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.pesaflow.navigations.ROUTE_ADD_TRANSACTION
-import com.example.pesaflow.navigations.ROUTE_VIEW_TRANSACTIONS
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

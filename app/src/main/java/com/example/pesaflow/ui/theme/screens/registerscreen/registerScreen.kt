@@ -1,5 +1,6 @@
 package com.example.pesaflow.ui.theme.screens.registerscreen
 
+import ROUTE_LOGIN
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -28,7 +29,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pesaflow.data.AuthViewModel
-import com.example.pesaflow.navigations.ROUTE_LOGIN
 
 @Composable
 fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel = viewModel()) {

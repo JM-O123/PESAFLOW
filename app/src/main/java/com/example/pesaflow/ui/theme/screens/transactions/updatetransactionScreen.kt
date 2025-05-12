@@ -17,7 +17,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -33,22 +35,21 @@ fun UpdateTransactionScreen(
     navController: NavController,
     transactionId: String
 ) {
-    // State variables
+    val transactionViewModel: TransactionViewModel = viewModel()
+    val context = LocalContext.current
+
+    // State
     var amount by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var date by remember { mutableStateOf("") }
-    var transactionType by remember { mutableStateOf("") }
+    var transactionType by remember { mutableStateOf("") } // For Income/Expense
     var title by remember { mutableStateOf("") }
 
-    // Loading state
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf("") }
 
-    val transactionViewModel: TransactionViewModel = viewModel()
-    val context = LocalContext.current
-
-    // Fetch transaction data when screen loads
+    // Load the transaction
     LaunchedEffect(transactionId) {
         transactionViewModel.getTransactionById(
             transactionId = transactionId,
@@ -69,11 +70,11 @@ fun UpdateTransactionScreen(
         )
     }
 
-    // Kenyan-themed gradient background
+    // Kenyan-themed background
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF006400)) // Kenyan green
+            .background(Color(0xFF006400))
     ) {
         Column(
             modifier = Modifier
@@ -82,7 +83,6 @@ fun UpdateTransactionScreen(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header
             Text(
                 text = "Update Transaction",
                 fontWeight = FontWeight.Bold,
@@ -93,11 +93,10 @@ fun UpdateTransactionScreen(
                     .fillMaxWidth()
                     .padding(bottom = 8.dp)
             )
-            Divider(color = Color.White, thickness = 2.dp)
 
+            Divider(color = Color.White, thickness = 2.dp)
             Spacer(Modifier.height(16.dp))
 
-            // Show loading or error state
             when {
                 isLoading -> {
                     CircularProgressIndicator(
@@ -106,8 +105,9 @@ fun UpdateTransactionScreen(
                             .size(50.dp)
                             .padding(16.dp)
                     )
-                    Text(text = "Loading transaction details...", color = Color.White)
+                    Text("Loading transaction details...", color = Color.White)
                 }
+
                 errorMessage.isNotEmpty() -> {
                     Text(
                         text = errorMessage,
@@ -122,33 +122,45 @@ fun UpdateTransactionScreen(
                         Text("Go Back", color = Color.White)
                     }
                 }
+
                 else -> {
-                    // Transaction Details Form
-                    InputField(
-                        value = amount,
-                        onValueChange = { amount = it },
-                        label = "Amount",
-                        leadingIcon = Icons.Default.Info
+                    // Input Fields
+                    InputField(amount, { amount = it }, "Amount", Icons.Default.Info)
+                    InputField(category, { category = it }, "Category", Icons.Default.ShoppingCart)
+                    InputField(description, { description = it }, "Description", Icons.Default.Edit, 150.dp)
+                    InputField(date, { date = it }, "Date", Icons.Default.DateRange)
+
+                    Spacer(Modifier.height(16.dp))
+
+                    // Transaction Type Selector (Income/Expense)
+                    Text(
+                        text = "Transaction Type",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 8.dp, bottom = 8.dp)
                     )
-                    InputField(
-                        value = category,
-                        onValueChange = { category = it },
-                        label = "Category",
-                        leadingIcon = Icons.Default.ShoppingCart
-                    )
-                    InputField(
-                        value = description,
-                        onValueChange = { description = it },
-                        label = "Description",
-                        leadingIcon = Icons.Default.Edit,
-                        height = 150.dp
-                    )
-                    InputField(
-                        value = date,
-                        onValueChange = { date = it },
-                        label = "Date",
-                        leadingIcon = Icons.Default.DateRange
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        listOf("Income", "Expense").forEach { type ->
+                            FilterChip(
+                                selected = transactionType == type,
+                                onClick = { transactionType = type },
+                                label = { Text(text = type) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                    selectedLabelColor = Color.White,
+                                    containerColor = Color.White.copy(alpha = 0.2f),
+                                    labelColor = Color.White
+                                )
+                            )
+                        }
+                    }
 
                     Spacer(Modifier.height(16.dp))
 
@@ -177,7 +189,7 @@ fun UpdateTransactionScreen(
                                     return@Button
                                 }
 
-                                if (category.isBlank() || date.isBlank()) {
+                                if (category.isBlank() || date.isBlank() || transactionType.isBlank()) {
                                     Toast.makeText(context, "Required fields are missing", Toast.LENGTH_SHORT).show()
                                     return@Button
                                 }
@@ -192,12 +204,12 @@ fun UpdateTransactionScreen(
                                     description = description,
                                     transactionId = transactionId,
                                     date = date,
-                                    userIdParam = ""
+                                    userIdParam = "" // or supply a real user ID
                                 )
                             },
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF006400)) // Kenyan-themed green
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF006400))
                         ) {
                             Text("UPDATE", color = Color.White)
                         }
@@ -213,28 +225,51 @@ fun InputField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
-    leadingIcon: androidx.compose.ui.graphics.vector.ImageVector,
+    leadingIcon: ImageVector? = null, // Optional leading icon
     height: Dp = 56.dp,
-    shape: Shape = RoundedCornerShape(16.dp)
+    shape: Shape = RoundedCornerShape(16.dp),
+    singleLine: Boolean = true, // Default to single-line for most inputs
+    maxLines: Int = 1, // Default to 1 line for single-line inputs
+    backgroundColor: Color = Color.Transparent, // Background color for better customization
+    textColor: Color = Color.White, // Default text color
+    labelColor: Color = Color.White.copy(alpha = 0.7f), // Label color
+    borderColor: Color = Color.White // Border color for focused and unfocused states
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label) },
-        leadingIcon = { Icon(leadingIcon, contentDescription = label) },
+        label = {
+            Text(
+                text = label,
+                color = labelColor
+            )
+        },
+        leadingIcon = leadingIcon?.let {
+            {
+                Icon(
+                    imageVector = it,
+                    contentDescription = label,
+                    tint = textColor
+                )
+            }
+        },
+        singleLine = singleLine,
+        maxLines = maxLines,
+        shape = shape,
+        textStyle = TextStyle(color = textColor),
         modifier = Modifier
             .fillMaxWidth()
-            .height(height)
-            .padding(vertical = 8.dp),
-        shape = shape,
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.Transparent,
-            unfocusedContainerColor = Color.Transparent,
-            focusedIndicatorColor = Color.White,
-            unfocusedIndicatorColor = Color.White.copy(alpha = 0.7f),
-            cursorColor = Color.White,
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White
+            .height(if (singleLine) height else Dp.Unspecified)
+            .padding(vertical = 8.dp)
+            .background(backgroundColor, shape),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = borderColor,
+            unfocusedBorderColor = borderColor.copy(alpha = 0.7f),
+            focusedLabelColor = labelColor,
+            unfocusedLabelColor = labelColor.copy(alpha = 0.7f),
+            cursorColor = textColor,
+            focusedLeadingIconColor = textColor,
+            unfocusedLeadingIconColor = textColor.copy(alpha = 0.7f)
         )
     )
 }

@@ -1,5 +1,12 @@
 package com.example.pesaflow.navigations
 
+import ROUTE_ADD_TRANSACTION
+import ROUTE_HOME
+import ROUTE_LOGIN
+import ROUTE_REGISTER
+import ROUTE_SPLASH
+import ROUTE_UPDATE_TRANSACTION
+import ROUTE_VIEW_TRANSACTIONS
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -12,7 +19,6 @@ import com.example.pesaflow.ui.theme.screens.loginScreen.LoginScreen
 import com.example.pesaflow.ui.theme.screens.registerscreen.RegisterScreen
 import com.example.pesaflow.ui.theme.screens.transactions.AddTransactionScreen
 import com.example.pesaflow.ui.theme.screens.transactions.ViewTransactionsScreen
-
 
 @Composable
 fun AppNavHost(
@@ -46,3 +52,4 @@ fun AppNavHost(
         }
     }
 }
+

@@ -1,5 +1,6 @@
 package com.example.pesaflow.ui.theme.screens
 
+import ROUTE_REGISTER
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -20,7 +21,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.pesaflow.R
-import com.example.pesaflow.navigations.ROUTE_REGISTER
 import kotlinx.coroutines.delay
 
 @Composable

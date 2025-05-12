@@ -1,5 +1,7 @@
+
 package com.example.pesaflow.data
 
+import ROUTE_VIEW_TRANSACTIONS
 import android.app.AlertDialog
 import android.content.Context
 import android.widget.Toast
@@ -9,7 +11,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.example.pesaflow.models.TransactionModel
-import com.example.pesaflow.navigations.ROUTE_VIEW_TRANSACTIONS
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import kotlinx.coroutines.Dispatchers
@@ -312,5 +313,4 @@ class TransactionViewModel : ViewModel() {
         } catch (e: Exception) {
             Toast.makeText(context, "Error: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
         }
-    }
-}
+    }}

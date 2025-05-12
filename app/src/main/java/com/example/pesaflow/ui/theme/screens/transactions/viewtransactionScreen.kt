@@ -1,12 +1,14 @@
 package com.example.pesaflow.ui.theme.screens.transactions
 
+import ROUTE_HOME
+import ROUTE_LOGIN
+import ROUTE_UPDATE_TRANSACTION
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -17,22 +19,18 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.pesaflow.data.TransactionViewModel
 import com.example.pesaflow.models.TransactionModel
-import com.example.pesaflow.navigations.ROUTE_HOME
-import com.example.pesaflow.navigations.ROUTE_LOGIN
-import com.example.pesaflow.navigations.ROUTE_UPDATE_TRANSACTION
 
 @Composable
 fun ViewTransactionsScreen(navController: NavHostController) {
     val context = LocalContext.current
     val transactionViewModel = remember { TransactionViewModel() }
 
-    // Get the current user ID from the transaction view model
+    // Get current user ID from the transaction view model
     val userId = transactionViewModel.getCurrentUserId()
 
-    // Check if user is logged in
+    // Check if the user is logged in
     LaunchedEffect(Unit) {
         if (userId.isNullOrEmpty()) {
-            // Redirect to login if not logged in
             Toast.makeText(context, "Please login to view transactions", Toast.LENGTH_SHORT).show()
             navController.navigate(ROUTE_LOGIN) {
                 popUpTo(0) { inclusive = true }
@@ -41,7 +39,6 @@ fun ViewTransactionsScreen(navController: NavHostController) {
         }
     }
 
-    // Show loading indicator while checking authentication
     if (userId.isNullOrEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
@@ -49,7 +46,8 @@ fun ViewTransactionsScreen(navController: NavHostController) {
         return
     }
 
-    val emptyTransaction = remember {
+    // MutableState for the currently selected transaction
+    val currentTransaction = remember {
         mutableStateOf(
             TransactionModel(
                 amount = 0,
@@ -64,21 +62,22 @@ fun ViewTransactionsScreen(navController: NavHostController) {
         )
     }
 
+    // SnapshotStateList for the list of transactions
     val transactionList = remember { mutableStateListOf<TransactionModel>() }
+    val filterType = remember { mutableStateOf("All") } // Default filter
 
-    // Load transactions once when Composable is shown
+    // Load transactions when the Composable is displayed
     LaunchedEffect(userId) {
-        transactionViewModel.viewTransactions(emptyTransaction, transactionList, context)
+        transactionViewModel.viewTransactions(currentTransaction, transactionList, context)
     }
 
     // Function to delete a transaction
-    val deleteTransaction = { transactionId: String ->
+    val deleteTransaction: (String) -> Unit = { transactionId ->
         transactionViewModel.deleteTransaction(
             context = context,
             transactionId = transactionId,
             navController = navController
         )
-        // The refresh will happen automatically through the ValueEventListener
     }
 
     Column(
@@ -105,7 +104,37 @@ fun ViewTransactionsScreen(navController: NavHostController) {
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (transactionList.isEmpty()) {
+        // Filter Chips
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            listOf("All", "Income", "Expense").forEach { filter ->
+                FilterChip(
+                    selected = filterType.value == filter,
+                    onClick = { filterType.value = filter },
+                    label = { Text(filter) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                        selectedLabelColor = Color.White
+                    )
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Filter and display transactions
+        val filteredTransactions = transactionList.filter { txn ->
+            when (filterType.value) {
+                "All" -> true
+                "Income" -> txn.transactionType == "Income"
+                "Expense" -> txn.transactionType == "Expense"
+                else -> true
+            }
+        }
+
+        if (filteredTransactions.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -121,15 +150,12 @@ fun ViewTransactionsScreen(navController: NavHostController) {
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                items(transactionList) { txn ->
-                    // Pass the deleteTransaction and navigation logic to each item
+                items(filteredTransactions) { txn ->
                     TransactionItem(
                         transaction = txn,
-                        onDeleteClick = { id ->
-                            deleteTransaction(id)
-                            transactionList
-                        },
+                        onDeleteClick = { id -> deleteTransaction(id) },
                         onUpdateClick = { id ->
+                            println("Navigating to UpdateTransactionScreen with ID: $id")
                             navController.navigate("$ROUTE_UPDATE_TRANSACTION/$id")
                         }
                     )
@@ -142,8 +168,8 @@ fun ViewTransactionsScreen(navController: NavHostController) {
 @Composable
 fun TransactionItem(
     transaction: TransactionModel,
-    onDeleteClick: (String) -> SnapshotStateList<TransactionModel>, // This function will be triggered on delete
-    onUpdateClick: (String) -> Unit // This function will be triggered on update
+    onDeleteClick: (String) -> Unit,
+    onUpdateClick: (String) -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -156,19 +182,59 @@ fun TransactionItem(
                 .fillMaxWidth()
                 .padding(12.dp)
         ) {
-            Text(text = "Title: ${transaction.title}", fontWeight = FontWeight.Bold)
-            Text(text = "Amount: ${transaction.amount}")
-            Text(text = "Category: ${transaction.category}")
-            Text(text = "Type: ${transaction.transactionType}")
-            Text(text = "Date: ${transaction.date}")
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Action buttons
+            // Title and Amount Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Delete Button
+                Text(
+                    text = transaction.title,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+                Text(
+                    text = "Ksh ${transaction.amount}",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp,
+                    color = if (transaction.transactionType == "Income") Color(0xFF43A047) else Color(0xFFB22222)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Category and Type
+            Text(
+                text = "Category: ${transaction.category}",
+                fontSize = 14.sp,
+                color = Color.Gray
+            )
+            Text(
+                text = "Type: ${transaction.transactionType}",
+                fontSize = 14.sp,
+                color = Color.Gray
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Date and Description
+            Text(
+                text = "Date: ${transaction.date}",
+                fontSize = 14.sp,
+                color = Color.Gray
+            )
+            Text(
+                text = "Description: ${transaction.description.ifEmpty { "No description" }}",
+                fontSize = 14.sp,
+                color = Color.Gray
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Action Buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                 Button(
                     onClick = { onDeleteClick(transaction.transactionId) },
                     colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.error)
@@ -176,7 +242,6 @@ fun TransactionItem(
                     Text(text = "Delete", color = Color.White)
                 }
 
-                // Update Button
                 Button(
                     onClick = { onUpdateClick(transaction.transactionId) },
                     colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary)
